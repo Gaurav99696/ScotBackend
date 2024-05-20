@@ -4,7 +4,7 @@ const initRoutes = require("./routes/index");
 const { validateUserMsg } = require("./validations/user.validations");
 const cors = require("cors");
 const { findUserBy } = require("./servise/user.servise");
-const io = require("socket.io")(6000, {
+const io = require("socket.io")(5000, {
   cors: {
     origin: ["http://localhost:3000"],
   },
