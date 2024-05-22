@@ -148,7 +148,7 @@ mongoose
     const io = require("socket.io")(server, {
       path: '/chat', // Set the path for Socket.IO
       cors: {
-        origin: ["http://localhost:3000"], // Update this to the origin of your client if different
+        origin: ["https://scot-uybn.onrender.com"], // Update this to the origin of your client if different
       },
     });
 
