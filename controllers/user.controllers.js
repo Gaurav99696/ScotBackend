@@ -1,4 +1,4 @@
-const { findUserBy, createUser, getOTP, verifyEmail, login, allUsers } = require("../servise/user.servise");
+const { findUserBy, createUser, getOTP, verifyEmail, login, allUsers, delUser } = require("../servise/user.servise");
 const { validateRegisterInput, validateEmail, validateLoginInput, validateUserName, validateUserMsg } = require("../validations/user.validations");
 const { createVerificationEmail, sendMail } = require("../servise/email.servise");
 const bcrypt = require("bcrypt");
@@ -113,10 +113,29 @@ const getSingleUser = async (req, res) => {
     }
 };
 
+const deleteUser = async (req, res) => {
+    const { error } = validateUserName(req.params);
+    if (error) return res.status(400).send({ message: error.details[0].message });
+
+    const data = req.params
+
+    try{
+        const getUser = await findUserBy("userName", data.userName);
+        if (!getUser) return res.status(404).send({ message: "User not found" });
+
+        const deleteUser = await delUser(data.userName)
+        return res.status(200).send({ message: "Success", deleteUser });
+    } catch (error) {
+        return res.status(500).send("An unexpected error occurred");
+    }
+
+}
+
 module.exports = {
     registerUser,
     loginUser,
     verifyUser,
     getAllUsers,
     getSingleUser,
+    deleteUser,
 };

@@ -63,6 +63,8 @@ const login = async (email, password) => {
 
 const allUsers = async (id) => await Users.find({ _id: { $ne: id } })
 
+const delUser = async (userName) => await Users.deleteOne({ userName: userName })
+
 let getToken = async (body) =>
   await jwt.sign(body, process.env.JWT_SECRET || "", {
     expiresIn: process.env.JWT_EXPIRY,
@@ -78,4 +80,5 @@ module.exports = {
   verifyEmail,
   login,
   allUsers,
+  delUser,
 };
