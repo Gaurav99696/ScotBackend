@@ -61,9 +61,19 @@ const login = async (email, password) => {
   };
 };
 
-const allUsers = async (id) => await Users.find({ _id: { $ne: id } })
+const allUsers = async (id) => await Users.find({ _id: { $ne: id } });
 
-const delUser = async (userName) => await Users.deleteOne({ userName: userName })
+const delUser = async (userName) =>
+  await Users.deleteOne({ userName: userName });
+
+const findUserByID = async (id) => await Users.findById(id);
+
+const updateUser = async (prop, value, updateFields) =>
+  Users.findOneAndUpdate(
+    { [prop]: value },
+    { $set: updateFields },
+    { new: true }
+  );
 
 let getToken = async (body) =>
   await jwt.sign(body, process.env.JWT_SECRET || "", {
@@ -81,4 +91,6 @@ module.exports = {
   login,
   allUsers,
   delUser,
+  findUserByID,
+  updateUser,
 };
