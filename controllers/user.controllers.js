@@ -162,7 +162,9 @@ const editUserAcc = async (req, res) => {
 
     const updates = {};
 
-    if (req.body.userName) {
+    if (req.body.userName && req.body.userName == getUser.userName) {
+      return res.status(400).send({ message: "Same User Name !" });
+    } else if (req.body.userName) {
       const { error } = validateUserName({ userName: req.body.userName });
       if (error)
         return res.status(400).send({ message: error.details[0].message });
@@ -170,22 +172,22 @@ const editUserAcc = async (req, res) => {
       updates.userName = req.body.userName;
     }
 
-    if (req.body.email) {
+    if (req.body.email && req.body.email == getUser.email) {
+      return res.status(400).send({ message: "Same Email !" });
+    } else if (req.body.email) {
       const { error } = validateEmail({ email: req.body.email });
       if (error)
         return res.status(400).send({ message: error.details[0].message });
       updates.email = req.body.email;
     }
 
-    if (req.body.password) {
+    if (req.body.password && getUser.password == req.body.password) {
+      return res.status(400).send({ message: "Same Password !" });
+    } else if (req.body.password) {
       const { error } = validatePassword({ password: req.body.password });
       if (error)
         return res.status(400).send({ message: error.details[0].message });
-      if (bcrypt.compare(getUser.password, req.body.password)) {
-        updates.password = await bcrypt.hash(req.body.password, 10);
-      } else {
-        return res.status(400).send({ message: "Same Password !" });
-      }
+      updates.password = await bcrypt.hash(req.body.password, 10);
     }
 
     if (Object.keys(updates).length > 0) {
