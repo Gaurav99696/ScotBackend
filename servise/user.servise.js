@@ -75,8 +75,40 @@ const updateUser = async (prop, value, updateFields) =>
     { new: true }
   );
 
+const deleteFeand = async (id, userName) => {
+  try {
+    const deleteF = await Users.updateOne(
+      { _id: id },
+      { $pull: { freand: { userName: userName } } }
+    );
+    if (!deleteF)
+      return res.status(404).send({ message: "Cannot Delete Your Frean" });
+
+    return deleteF;
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
+const unknownPeople = async (freandUserNames, id) => {
+  try {
+    const userNames = freandUserNames.map((user) => user.userName);
+
+    const users = await Users.find({ userName: { $in: userNames } }, "_id");
+    const userIds = users.map((user) => user._id);
+
+    return await Users.find({
+      _id: { $nin: [...userIds, id] },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
 let getToken = async (body) =>
-  await jwt.sign(body, process.env.JWT_SECRET || "", {
+  jwt.sign(body, process.env.JWT_SECRET || "", {
     expiresIn: process.env.JWT_EXPIRY,
   });
 
@@ -93,4 +125,6 @@ module.exports = {
   delUser,
   findUserByID,
   updateUser,
+  deleteFeand,
+  unknownPeople,
 };

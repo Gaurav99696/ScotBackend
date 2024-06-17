@@ -8,6 +8,8 @@ const {
   delUser,
   findUserByID,
   updateUser,
+  deleteFeand,
+  unknownPeople,
 } = require("../servise/user.servise");
 const {
   validateRegisterInput,
@@ -205,6 +207,137 @@ const editUserAcc = async (req, res) => {
   }
 };
 
+const addFreand = async (req, res) => {
+  const freandId = req.params.id;
+  const userId = req.body.user;
+
+  try {
+    const cheackFreandId = await findUserByID(freandId);
+    if (!cheackFreandId)
+      return res.status(404).send({ message: "Freand not found" });
+
+    const cheackUserId = await findUserByID(userId);
+    if (!cheackUserId)
+      return res.status(404).send({ message: "User not found" });
+
+    const freandExists = cheackUserId.freand.some(
+      (friend) => friend.userName === cheackFreandId.userName
+    );
+
+    console.log(freandExists);
+
+    if (freandExists) {
+      return res.status(500).send({ message: "Freand Already Exists" });
+    } else {
+      let userNameFreand = cheackFreandId.userName;
+      let emailFreand = cheackFreandId.email;
+
+      let userNameUser = cheackUserId.userName;
+      let emailUser = cheackUserId.email;
+
+      await cheackUserId.freand.push({
+        userName: userNameFreand,
+        email: emailFreand,
+      });
+      await cheackFreandId.freand.push({
+        userName: userNameUser,
+        email: emailUser,
+      });
+
+      await cheackUserId.save();
+      await cheackFreandId.save();
+
+      return res.status(200).send({
+        message: "Success",
+        cheackFreandId,
+        cheackUserId,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
+const getFreands = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await findUserByID(userId);
+    if (!user) return res.status(404).send({ message: "User not found" });
+
+    const freands = user.freand;
+
+    return res.status(200).send({
+      message: "Success",
+      freands,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
+const getUserByID = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await findUserByID(id);
+    if (!user) return res.status(404).send({ message: "User not found" });
+
+    return res.status(200).send({
+      message: "Success",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
+const deleteFreand = async (req, res) => {
+  const id = req.body.id;
+  const userName = req.params.userName;
+
+  try {
+    const user = await findUserByID(id);
+    if (!user) return res.status(404).send({ message: "User not found" });
+    const freand = await findUserBy("userName", userName);
+    if (!freand) return res.status(404).send({ message: "Freand not found" });
+
+    const freandId = String(freand._id);
+
+    await deleteFeand(id, userName);
+    await deleteFeand(freandId, user.userName);
+
+    return res.status(200).send({
+      message: "Success",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
+const getUnknownPeople = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await findUserByID(id);
+    if (!user) return res.status(404).send({ message: "User not found" });
+
+    const nonFreand = await unknownPeople(user.freand, user._id);
+
+    return res.status(200).send({
+      message: "Success",
+      nonFreand,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("An unexpected error occurred");
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -213,4 +346,9 @@ module.exports = {
   getSingleUser,
   deleteUser,
   editUserAcc,
+  addFreand,
+  getFreands,
+  getUserByID,
+  deleteFreand,
+  getUnknownPeople,
 };
