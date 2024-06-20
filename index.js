@@ -4,6 +4,7 @@ const initRoutes = require("./routes/index");
 const { validateUserMsg } = require("./validations/user.validations");
 const cors = require("cors");
 const { findUserBy } = require("./servise/user.servise");
+const Users = require("./models/user.model");
 require("dotenv").config();
 
 const app = express();
@@ -23,15 +24,13 @@ mongoose
 
     // Set up Socket.IO server
     const io = require("socket.io")(server, {
-      path: '/chat', // Set the path for Socket.IO
+      path: "/chat", // Set the path for Socket.IO
       cors: {
-        origin: ["https://scot-uybn.onrender.com"], // Update this to the origin of your client if different
+        origin: ["https://scot-uybn.onrender.com", "http://localhost:3000"], // Update this to the origin of your client if different
       },
     });
 
     io.on("connection", (socket) => {
-      console.log('A user connected to /chat');
-
       socket.on("sendMSG", async ({ sender, content, reciver }) => {
         const data = { content };
 
@@ -44,23 +43,46 @@ mongoose
         const getReciver = await findUserBy("userName", reciver);
         const getSender = await findUserBy("userName", sender);
 
-        getReciver.messages.push({ sender, content });
-        getSender.messages.push({ sender, content });
+        if (!getReciver || !getSender) {
+          socket.emit("error", "User not found");
+          return;
+        }
 
-        await getReciver.save();
-        await getSender.save();
+        const reciverUpdate = await Users.updateOne(
+          {
+            userName: getSender.userName,
+            "freand.userName": getReciver.userName,
+          },
+          {
+            $push: { "freand.$.messages": { sender, reciver, content } },
+          }
+        );
+
+        const senderUpdate = await Users.updateOne(
+          {
+            userName: getReciver.userName,
+            "freand.userName": getSender.userName,
+          },
+          {
+            $push: { "freand.$.messages": { sender, reciver, content } },
+          }
+        );
+
+        if (reciverUpdate.nModified === 0 || senderUpdate.nModified === 0) {
+          socket.emit("error", "Failed to update messages");
+          return;
+        }
 
         socket.broadcast.emit("reciveMSG", { sender, content, reciver });
       });
 
       socket.on("disconnect", () => {
-        console.log('A user disconnected from /chat');
+        console.log("A user disconnected from /chat");
       });
     });
 
     io.on("error", (error) => {
       console.log(`Socket.IO error: ${error}`);
     });
-
   })
   .catch(() => console.log("faild! YOU ARE NOT CONNECTED TO YOUR DATABASE!"));

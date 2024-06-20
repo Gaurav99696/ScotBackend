@@ -27,17 +27,18 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
-    messages: [
-      {
-        sender: String,
-        content: String,
-        timestamp: { type: Date, default: Date.now },
-      },
-    ],
     freand: [
       {
         userName: String,
         email: String,
+        messages: [
+          {
+            sender: String,
+            reciver: String,
+            content: String,
+            timestamp: { type: Date, default: Date.now },
+          },
+        ],
         timestamp: { type: Date, default: Date.now },
       },
     ],
