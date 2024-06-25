@@ -148,6 +148,16 @@ const deleteUser = async (req, res) => {
     const getUser = await findUserBy("userName", data.userName);
     if (!getUser) return res.status(404).send({ message: "User not found" });
 
+    const getUsers = await allUsers(getUser._id);
+
+    getUsers.map((user) => {
+      user.freand.map(async (e) => {
+        if (e.userName === data.userName) {
+          deleteFeand(user._id, data.userName);
+        }
+      });
+    });
+
     const deleteUser = await delUser(data.userName);
     return res.status(200).send({ message: "Success", deleteUser });
   } catch (error) {
